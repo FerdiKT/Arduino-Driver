@@ -9,8 +9,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,11 +26,12 @@ public class ConnectToCar extends Activity {
 
     Button btnMotor,btnForth, btnBack, btnLeft, btnRight;
 
-    String    GUC = "0",
-            ILERI = "1",
-             GERI = "2",
-              SOL = "3",
-              SAG = "4";
+    String     GUC = "0",
+             ILERI = "1",
+              GERI = "2",
+               SOL = "3",
+               SAG = "4",
+            YONGUC = "5";
 
     TextView txtArduino;
     Handler h;
@@ -55,7 +56,6 @@ public class ConnectToCar extends Activity {
 
         setContentView(R.layout.activity_connect_to_car);
 
-        btnMotor = (Button)findViewById(R.id.motor);
         btnForth = (Button) findViewById(R.id.forth);
         btnBack = (Button) findViewById(R.id.back);
         btnLeft = (Button) findViewById(R.id.left);
@@ -92,34 +92,68 @@ public class ConnectToCar extends Activity {
         btAdapter = BluetoothAdapter.getDefaultAdapter();       // get Bluetooth adapter
         checkBTState();
 
-        btnMotor.setOnClickListener(new OnClickListener() {
+
+        btnForth.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onClick(View v) {
-                mConnectedThread.write(GUC); // Motor gücü
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction() & MotionEvent.ACTION_MASK) {
+                    case MotionEvent.ACTION_DOWN:
+                        //mConnectedThread.write(YONGUC); // yön motoruna güç ver
+                        mConnectedThread.write(ILERI); // sağ
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        mConnectedThread.write(GUC); // yön motorunun gücünü kapat
+                        break;
+                }
+                return false;
             }
         });
 
-        btnForth.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-                mConnectedThread.write(ILERI); // ileri
+        btnBack.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction() & MotionEvent.ACTION_MASK) {
+                    case MotionEvent.ACTION_DOWN:
+                        //mConnectedThread.write(YONGUC); // yön motoruna güç ver
+                        mConnectedThread.write(GERI); // sağ
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        mConnectedThread.write(GUC); // yön motorunun gücünü kapat
+                        break;
+                }
+                return false;
             }
         });
 
-        btnBack.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-                mConnectedThread.write(GERI); // geri
+        btnLeft.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction() & MotionEvent.ACTION_MASK) {
+                    case MotionEvent.ACTION_DOWN:
+                        //mConnectedThread.write(YONGUC); // yön motoruna güç ver
+                        mConnectedThread.write(SOL); // sağ
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        mConnectedThread.write(YONGUC); // yön motorunun gücünü kapat
+                        break;
+                }
+                return false;
             }
         });
 
-        btnLeft.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-                mConnectedThread.write(SOL); // sol
-            }
-        });
-
-        btnRight.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-                mConnectedThread.write(SAG); // sağ
+        btnRight.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction() & MotionEvent.ACTION_MASK) {
+                    case MotionEvent.ACTION_DOWN:
+                        //mConnectedThread.write(YONGUC); // yön motoruna güç ver
+                        mConnectedThread.write(SAG); // sağ
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        mConnectedThread.write(YONGUC); // yön motorunun gücünü kapat
+                        break;
+                }
+                return false;
             }
         });
     }
@@ -190,6 +224,18 @@ public class ConnectToCar extends Activity {
             btSocket.close();
         } catch (IOException e2) {
             errorExit("Fatal Error", "In onPause() and failed to close socket." + e2.getMessage() + ".");
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "...In onDestroy()...");
+
+        try     {
+            btSocket.close();
+        } catch (IOException e2) {
+            errorExit("Fatal Error", "In onDestroy() and failed to close socket." + e2.getMessage() + ".");
         }
     }
 
